@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD with jQuery</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>CRUD Operations</h1>
+    <div>
+        <h2>Create Item</h2>
+        <input type="text" id="create-name" placeholder="Name">
+        <button id="create-button">Create</button>
+    </div>
+    <div>
+        <h2>Items</h2>
+        <ul id="items-list"></ul>
+    </div>
+    <script>
+        $(document).ready(function() {
+            function loadItems() {
+                $.ajax({
+                    url: 'http://localhost:3000/items',
+                    method: 'GET',
+                    success: function(items) {
+                        $('#items-list').empty();
+                        items.forEach(item => {
+                            $('#items-list').append(`<li data-id="${item.id}">${item.name} <button class="edit-button">Edit</button> <button class="delete-button">Delete</button></li>`);
+                        });
+                    }
+                });
+            }
+
+            $('#create-button').click(function() {
+                const name = $('#create-name').val();
+                $.ajax({
+                    url: 'http://localhost:3000/items',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ name }),
+                    success: function() {
+                        loadItems();
+                        $('#create-name').val('');
+                    }
+                });
+            });
+
+            $('#items-list').on('click', '.delete-button', function() {
+                const id = $(this).parent().data('id');
+                $.ajax({
+                    url: `http://localhost:3000/items/${id}`,
+                    method: 'DELETE',
+                    success: function() {
+                        loadItems();
+                    }
+                });
+            });
+
+            $('#items-list').on('click', '.edit-button', function() {
+                const id = $(this).parent().data('id');
+                const newName = prompt('Enter new name:');
+                if (newName) {
+                    $.ajax({
+                        url: `http://localhost:3000/items/${id}`,
+                        method: 'PUT',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ name: newName }),
+                        success: function() {
+                            loadItems();
+                        }
+                    });
+                }
+            });
+
+            loadItems();
+        });
+    </script>
+</body>
+</html>
